@@ -128,6 +128,70 @@ export const mockUsers: User[] = [
     yesterday_summary: "Joint pain in the morning, took prescribed medication",
     last_month_summary: "Managing chronic conditions well, regular doctor visits",
     created_at: "2024-01-01T00:00:00Z"
+  },
+  {
+    user_id: 5,
+    name: "Maria Garcia",
+    age: 45,
+    gender: "Female",
+    email: "maria.garcia@email.com",
+    height_cm: 162,
+    weight_kg: 70,
+    bmi: 26.7,
+    blood_group: "O+",
+    activity_level: "moderate",
+    gym_member: false,
+    smoker: false,
+    alcohol: true,
+    medications: true,
+    ever_hospitalized: false,
+    ever_concussion: false,
+    allergies: "dust mites",
+    medical_conditions: "Migraine, Anxiety",
+    avg_sleep_hours: 6.5,
+    avg_blood_pressure: "128/82",
+    avg_heart_rate: 75,
+    avg_water_intake: 2.2,
+    cholesterol_level: 185.0,
+    blood_sugar_level: 92.0,
+    steps_per_day: 6800,
+    last_checkup: "2024-01-12",
+    emergency_contact: "Jose Garcia: +1234567894",
+    yesterday_summary: "Mild headache in the evening, took prescribed medication",
+    last_month_summary: "Managing stress levels, regular medication adherence",
+    created_at: "2024-01-01T00:00:00Z"
+  },
+  {
+    user_id: 6,
+    name: "David Kim",
+    age: 31,
+    gender: "Male",
+    email: "david.kim@email.com",
+    height_cm: 178,
+    weight_kg: 73,
+    bmi: 23.0,
+    blood_group: "A-",
+    activity_level: "high",
+    gym_member: true,
+    smoker: false,
+    alcohol: false,
+    medications: false,
+    ever_hospitalized: false,
+    ever_concussion: false,
+    allergies: "none",
+    medical_conditions: "none",
+    avg_sleep_hours: 7.8,
+    avg_blood_pressure: "115/75",
+    avg_heart_rate: 62,
+    avg_water_intake: 3.2,
+    cholesterol_level: 155.0,
+    blood_sugar_level: 82.0,
+    steps_per_day: 14500,
+    last_checkup: "2024-01-18",
+    emergency_contact: "Sarah Kim: +1234567895",
+    yesterday_summary: "Intense workout session, excellent recovery metrics",
+    last_month_summary: "Peak physical condition, consistent training schedule",
+    created_at: "2024-01-01T00:00:00Z"
   }
 ];
 
@@ -262,6 +326,53 @@ export const healthScenarios: HealthScenario[] = [
       ]
     },
     expected_ai_response: "Your recovery is progressing well. Let's continue monitoring your healing."
+  },
+  {
+    id: "mental_health_crisis",
+    name: "Mental Health Crisis",
+    description: "Patient experiencing severe anxiety and panic symptoms",
+    category: "emergency",
+    data_changes: {
+      symptoms: [
+        { symptom: "panic attack", severity: "severe", duration: "20 minutes" },
+        { symptom: "rapid heartbeat", severity: "moderate", duration: "1 hour" },
+        { symptom: "shortness of breath", severity: "moderate", duration: "30 minutes" }
+      ],
+      metrics: [
+        { heart_rate: 120, blood_pressure: "160/100", mood: "panicked", sleep_hours: 3 }
+      ]
+    },
+    expected_ai_response: "I'm very concerned about your panic symptoms. Let's get you immediate support."
+  },
+  {
+    id: "medication_interaction",
+    name: "Drug Interaction Alert",
+    description: "Potential dangerous interaction between medications",
+    category: "medication",
+    data_changes: {
+      symptoms: [
+        { symptom: "dizziness", severity: "moderate", duration: "2 hours" },
+        { symptom: "nausea", severity: "mild", duration: "1 hour" }
+      ],
+      metrics: [
+        { blood_pressure: "90/60", heart_rate: 55, mood: "concerned" }
+      ]
+    },
+    expected_ai_response: "I've detected a potential medication interaction. This requires immediate attention."
+  },
+  {
+    id: "wellness_achievement",
+    name: "Health Goal Achievement",
+    description: "Patient reaches significant health milestone",
+    category: "lifestyle",
+    data_changes: {
+      symptoms: [],
+      metrics: [
+        { steps: 20000, heart_rate: 65, mood: "accomplished", sleep_hours: 8 }
+      ],
+      profile_updates: { weight_kg: 68, bmi: 24.2 }
+    },
+    expected_ai_response: "Congratulations on reaching your health goal! Your progress is remarkable."
   }
 ];
 
@@ -313,5 +424,23 @@ export const personalizationFactors = [
     weight: 0.4,
     description: "Support system and emergency planning",
     data_source: "Emergency contact information"
+  },
+  {
+    factor: "Social Support System",
+    weight: 0.5,
+    description: "Family support and social connections",
+    data_source: "Emergency contacts and social history"
+  },
+  {
+    factor: "Health Literacy Level",
+    weight: 0.55,
+    description: "Understanding of health concepts and terminology",
+    data_source: "User interactions and question patterns"
+  },
+  {
+    factor: "Technology Comfort",
+    weight: 0.45,
+    description: "Comfort level with digital health tools",
+    data_source: "App usage patterns and preferences"
   }
 ];

@@ -167,7 +167,7 @@ export const useEcosystemStore = create<EcosystemState>((set, get) => ({
   startDemo: () => set({ isDemoMode: true, demoStep: 0 }),
   
   nextDemoStep: () => set((state) => ({ 
-    demoStep: state.demoStep + 1 
+    demoStep: Math.min(state.demoStep + 1, 6) // Max 7 steps (0-6)
   })),
   
   exitDemo: () => set({ isDemoMode: false, demoStep: 0 }),
@@ -177,8 +177,20 @@ export const useEcosystemStore = create<EcosystemState>((set, get) => ({
     const state = get();
     const { data_changes } = scenario;
     
+    // Add notification about scenario application
+    const scenarioNotification = {
+      notification_id: Date.now(),
+      user_id: state.currentUser?.user_id || 1,
+      title: `Scenario Applied: ${scenario.name}`,
+      message: `Testing scenario: ${scenario.description}`,
+      notification_type: 'scenario',
+      is_read: false,
+      created_at: new Date().toISOString()
+    };
+    
     set({
       selectedScenario: scenario,
+      notifications: [scenarioNotification, ...state.notifications],
       symptoms: data_changes.symptoms ? 
         [...state.symptoms, ...data_changes.symptoms.map(s => ({ 
           ...s, 
@@ -203,9 +215,9 @@ export const useEcosystemStore = create<EcosystemState>((set, get) => ({
   resetToBaseline: () => set({
     selectedScenario: null,
     symptoms: [],
-    healthMetrics: [],
-    medications: [],
-    chatHistory: [],
-    timelinePosition: 100
+    // Keep some data for continuity
+    timelinePosition: 100,
+    // Clear AI analytics
+    aiResponseAnalytics: null
   })
 }));
