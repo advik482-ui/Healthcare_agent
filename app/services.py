@@ -7,6 +7,8 @@ from repositories import medications as meds_repo
 from repositories import disorders as disorders_repo
 from repositories import reports as reports_repo
 from repositories import symptoms as symptoms_repo
+from repositories import notifications as notifications_repo
+from repositories import alerts as alerts_repo
 
 
 # Users
@@ -328,3 +330,117 @@ Last Month's Summary: {user_profile.get('last_month_summary', 'N/A')}
 """
 		
 		return user_data
+
+
+# Notifications
+async def create_notification(
+	user_id: int,
+	title: str,
+	message: str,
+	notification_type: Optional[str] = None,
+) -> Dict[str, Any]:
+	async for conn in get_db_connection():
+		result = await notifications_repo.create_notification(
+			conn, user_id=user_id, title=title, message=message, notification_type=notification_type
+		)
+		await conn.commit()
+		return result
+
+
+async def get_user_notifications(
+	user_id: int,
+	unread_only: bool = False,
+	limit: Optional[int] = None,
+) -> List[Dict[str, Any]]:
+	async for conn in get_db_connection():
+		return await notifications_repo.get_user_notifications(
+			conn, user_id=user_id, unread_only=unread_only, limit=limit
+		)
+
+
+async def mark_notification_read(notification_id: int, user_id: int) -> bool:
+	async for conn in get_db_connection():
+		result = await notifications_repo.mark_notification_read(
+			conn, notification_id=notification_id, user_id=user_id
+		)
+		await conn.commit()
+		return result
+
+
+async def mark_all_notifications_read(user_id: int) -> int:
+	async for conn in get_db_connection():
+		result = await notifications_repo.mark_all_notifications_read(conn, user_id=user_id)
+		await conn.commit()
+		return result
+
+
+async def get_unread_notification_count(user_id: int) -> int:
+	async for conn in get_db_connection():
+		return await notifications_repo.get_unread_notification_count(conn, user_id=user_id)
+
+
+async def delete_notification(notification_id: int, user_id: int) -> bool:
+	async for conn in get_db_connection():
+		result = await notifications_repo.delete_notification(
+			conn, notification_id=notification_id, user_id=user_id
+		)
+		await conn.commit()
+		return result
+
+
+# Alerts
+async def create_alert(
+	user_id: int,
+	alert_type: str,
+	title: str,
+	message: str,
+	alert_time: str,
+) -> Dict[str, Any]:
+	async for conn in get_db_connection():
+		result = await alerts_repo.create_alert(
+			conn, user_id=user_id, alert_type=alert_type, title=title, message=message, alert_time=alert_time
+		)
+		await conn.commit()
+		return result
+
+
+async def get_user_alerts(
+	user_id: int,
+	active_only: bool = True,
+	limit: Optional[int] = None,
+) -> List[Dict[str, Any]]:
+	async for conn in get_db_connection():
+		return await alerts_repo.get_user_alerts(
+			conn, user_id=user_id, active_only=active_only, limit=limit
+		)
+
+
+async def get_upcoming_alerts(user_id: int, hours_ahead: int = 24) -> List[Dict[str, Any]]:
+	async for conn in get_db_connection():
+		return await alerts_repo.get_upcoming_alerts(conn, user_id=user_id, hours_ahead=hours_ahead)
+
+
+async def update_alert(alert_id: int, user_id: int, **kwargs) -> Optional[Dict[str, Any]]:
+	async for conn in get_db_connection():
+		result = await alerts_repo.update_alert(conn, alert_id=alert_id, user_id=user_id, **kwargs)
+		await conn.commit()
+		return result
+
+
+async def deactivate_alert(alert_id: int, user_id: int) -> bool:
+	async for conn in get_db_connection():
+		result = await alerts_repo.deactivate_alert(conn, alert_id=alert_id, user_id=user_id)
+		await conn.commit()
+		return result
+
+
+async def delete_alert(alert_id: int, user_id: int) -> bool:
+	async for conn in get_db_connection():
+		result = await alerts_repo.delete_alert(conn, alert_id=alert_id, user_id=user_id)
+		await conn.commit()
+		return result
+
+
+async def get_active_alert_count(user_id: int) -> int:
+	async for conn in get_db_connection():
+		return await alerts_repo.get_active_alert_count(conn, user_id=user_id)

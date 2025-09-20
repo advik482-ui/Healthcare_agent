@@ -139,3 +139,32 @@ CREATE TABLE IF NOT EXISTS Reports (
     content TEXT,               -- JSON or text
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
+
+-- ===========================
+-- 8. Notifications
+-- ===========================
+CREATE TABLE IF NOT EXISTS Notifications (
+    notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    notification_type TEXT,     -- 'medication', 'checkup', 'general', 'alert'
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);
+
+-- ===========================
+-- 9. Alerts
+-- ===========================
+CREATE TABLE IF NOT EXISTS Alerts (
+    alert_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    alert_type TEXT NOT NULL,   -- 'medication', 'checkup', 'symptom', 'general'
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    alert_time DATETIME NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);
