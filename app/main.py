@@ -9,7 +9,7 @@ from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
 from pydantic import BaseModel
 from typing import List, Optional
-from .db import ensure_database_initialized, get_db_connection
+from db import ensure_database_initialized, get_db_connection
 
 
 # ---------- CONFIG ----------
@@ -43,7 +43,12 @@ class UserOut(BaseModel):
 async def health() -> dict:
 	return {"status": "ok"}
 
+from starlette.middleware.sessions import SessionMiddleware
+app.add_middleware(SessionMiddleware, secret_key="super-secret-key")
 
+@app.get("/")
+def index():
+    return {"message": "Welcome!", "link": "/authorize"}
 @app.get("/authorize")
 async def authorize(request: Request):
     flow = Flow.from_client_secrets_file(

@@ -17,6 +17,26 @@ async def add_user(name: str, age: Optional[int] = None, gender: Optional[str] =
 
 
 # Daily Metrics
+
+async def add_user_tokens(
+    user_id: int,
+    access_token: str,
+    refresh_token: Optional[str] = None,
+    expiry: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Wrapper function to save user OAuth tokens in the database.
+    """
+    async for conn in get_db_connection():
+        result = await metrics_repo.save_user_tokens(
+            conn,
+            user_id=user_id,
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expiry=expiry
+        )
+        await conn.commit()
+        return result
 async def add_daily_metric(
 	user_id: int,
 	date: str,

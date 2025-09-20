@@ -37,3 +37,22 @@ async def get_user_metrics_by_date(conn: aiosqlite.Connection, user_id: int, dat
 	)
 	rows = await cursor.fetchall()
 	return [dict(row) for row in rows]
+async def save_user_tokens(
+    conn: aiosqlite.Connection,
+    user_id: int,
+    access_token: str,
+    refresh_token: Optional[str] = None,
+    expiry: Optional[str] = None,
+) -> Dict[str, Any]:
+    cursor = await conn.execute(
+        """
+        INSERT INTO UserTokens (
+            user_id, access_token, refresh_token, expiry
+        ) VALUES (?, ?, ?, ?)
+        RETURNING token_id, user_id, access_token, refresh_token, expiry, created_at
+        """,
+        (user_id, access_token, refresh_token, expiry),
+    )
+    row = await cursor.fetchone()
+    await conn.commit()
+    return dict(row)
