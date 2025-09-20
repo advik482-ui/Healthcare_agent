@@ -6,7 +6,9 @@ import {
   UserCircleIcon, 
   HeartIcon, 
   ExclamationTriangleIcon,
-  CheckCircleIcon 
+  CheckCircleIcon,
+  SparklesIcon,
+  CpuChipIcon
 } from '@heroicons/react/24/outline';
 
 export const UserSelector: React.FC = () => {
@@ -32,12 +34,19 @@ export const UserSelector: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4">
+    <motion.div 
+      className="space-y-4"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-display font-semibold text-white">
+        <h2 className="text-lg font-display font-semibold text-white flex items-center">
+          <CpuChipIcon className="w-5 h-5 mr-2 text-primary-400" />
           Select Patient
         </h2>
-        <div className="text-sm text-gray-400">
+        <div className="text-sm text-gray-400 flex items-center">
+          <SparklesIcon className="w-4 h-4 mr-1" />
           {users.length} profiles
         </div>
       </div>
@@ -51,22 +60,22 @@ export const UserSelector: React.FC = () => {
             <motion.div
               key={user.user_id}
               className={`
-                p-4 rounded-xl border cursor-pointer transition-all duration-200
+                p-4 rounded-xl border cursor-pointer transition-all duration-300 backdrop-blur-sm
                 ${isSelected 
-                  ? 'bg-primary-500/20 border-primary-500/50 ring-2 ring-primary-500/30' 
-                  : 'bg-dark-800/50 border-dark-700/50 hover:bg-dark-700/50 hover:border-dark-600/50'
+                  ? 'bg-primary-500/20 border-primary-500/50 ring-2 ring-primary-500/30 shadow-lg shadow-primary-500/10' 
+                  : 'bg-dark-800/60 border-dark-700/50 hover:bg-dark-700/60 hover:border-primary-500/30 hover:shadow-md'
                 }
               `}
               onClick={() => setCurrentUser(user)}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
             >
               <div className="flex items-start space-x-3">
                 {/* Avatar */}
-                <div className="w-12 h-12 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
                   <span className="text-lg font-bold text-white">
                     {user.name.charAt(0)}
                   </span>
@@ -78,14 +87,17 @@ export const UserSelector: React.FC = () => {
                     <h3 className="font-medium text-white truncate">
                       {user.name}
                     </h3>
-                    <healthStatus.icon className={`w-4 h-4 ${healthStatus.color}`} />
+                    <div className="flex items-center space-x-1">
+                      <healthStatus.icon className={`w-4 h-4 ${healthStatus.color}`} />
+                      {isSelected && <SparklesIcon className="w-3 h-3 text-primary-400 animate-pulse" />}
+                    </div>
                   </div>
                   
                   <div className="flex items-center space-x-2 mb-2">
                     <span className="text-sm text-gray-400">
                       {user.age}y • {user.gender}
                     </span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getActivityColor(user.activity_level)}`}>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getActivityColor(user.activity_level)}`}>
                       {user.activity_level}
                     </span>
                   </div>
@@ -116,12 +128,20 @@ export const UserSelector: React.FC = () => {
               {/* Selection Indicator */}
               {isSelected && (
                 <motion.div
-                  className="mt-3 p-2 bg-primary-500/10 rounded-lg border border-primary-500/30"
+                  className="mt-3 p-3 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 rounded-lg border border-primary-500/30"
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
+                  transition={{ duration: 0.3 }}
                 >
-                  <p className="text-xs text-primary-300 text-center">
-                    ✓ Active Patient Profile
+                  <div className="flex items-center justify-center space-x-2">
+                    <SparklesIcon className="w-4 h-4 text-primary-400" />
+                    <p className="text-xs text-primary-300 font-medium">
+                      Active Patient Profile
+                    </p>
+                    <div className="w-2 h-2 bg-primary-400 rounded-full animate-pulse" />
+                  </div>
+                  <p className="text-xs text-gray-400 text-center mt-1">
+                    AI is now personalized for {user.name}
                   </p>
                 </motion.div>
               )}
@@ -132,13 +152,13 @@ export const UserSelector: React.FC = () => {
 
       {/* Add New User Button */}
       <motion.button
-        className="w-full p-4 border-2 border-dashed border-dark-600 rounded-xl text-gray-400 hover:text-white hover:border-dark-500 transition-all duration-200 flex items-center justify-center space-x-2"
+        className="w-full p-4 border-2 border-dashed border-dark-600 rounded-xl text-gray-400 hover:text-primary-400 hover:border-primary-500/50 hover:bg-primary-500/5 transition-all duration-300 flex items-center justify-center space-x-2 backdrop-blur-sm"
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
         <UserCircleIcon className="w-5 h-5" />
         <span>Add New Patient</span>
       </motion.button>
-    </div>
+    </motion.div>
   );
 };
