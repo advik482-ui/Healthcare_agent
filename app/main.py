@@ -44,7 +44,11 @@ from services import (
 	# Reports functions
 	add_report,
 	get_user_data_by_date,
-	get_comprehensive_user_data
+	get_comprehensive_user_data,
+	# Personalized notification functions
+	generate_personalized_notification,
+	generate_daily_personalized_notification,
+	generate_multiple_personalized_notifications
 )
 
 # ---------- CONFIG ----------
@@ -223,6 +227,15 @@ class ReportCreate(BaseModel):
 	report_date: str
 	report_type: Optional[str] = None
 	content: Optional[str] = None
+
+
+class PersonalizedNotificationRequest(BaseModel):
+	notification_type: str = "general"  # medication, wellness, symptom_followup, checkup, general
+	custom_context: Optional[str] = None
+
+
+class MultipleNotificationsRequest(BaseModel):
+	notification_types: Optional[List[str]] = None  # If None, uses default types
 
 
 @app.get("/health")
@@ -798,3 +811,74 @@ async def get_user_data_summary(user_id: int, date: str):
 	"""Get comprehensive data summary for a user on a specific date"""
 	data = await get_user_data_by_date(user_id=user_id, date=date)
 	return data
+
+
+# ===========================
+# PERSONALIZED NOTIFICATION ENDPOINTS
+# ===========================
+
+@app.post("/notifications/{user_id}/personalized", response_model=NotificationOut, status_code=201)
+async def create_personalized_notification(user_id: int, payload: PersonalizedNotificationRequest):
+	"""
+	Generate and create a hyper-personalized notification for a user using AI.
+	Uses comprehensive user data to create engaging, personalized notifications.
+	"""
+	result = await generate_personalized_notification(
+		user_id=user_id,
+		notification_type=payload.notification_type,
+		custom_context=payload.custom_context
+	)
+	return result
+
+
+@app.post("/notifications/{user_id}/daily-personalized", response_model=NotificationOut, status_code=201)
+async def create_daily_personalized_notification(user_id: int):
+	"""
+	Generate a daily personalized notification based on user's current health status.
+	Automatically determines the best notification type based on user data.
+	"""
+	result = await generate_daily_personalized_notification(user_id=user_id)
+	return result
+
+
+@app.post("/notifications/{user_id}/multiple-personalized", response_model=List[NotificationOut], status_code=201)
+async def create_multiple_personalized_notifications(user_id: int, payload: MultipleNotificationsRequest):
+	"""
+	Generate multiple personalized notifications for a user.
+	Creates different types of personalized notifications based on user's health data.
+	"""
+	results = await generate_multiple_personalized_notifications(
+		user_id=user_id,
+		notification_types=payload.notification_types
+	)
+	return results
+
+
+@app.get("/notifications/{user_id}/generate-preview")
+async def preview_personalized_notification(
+	user_id: int, 
+	notification_type: str = "general",
+	custom_context: Optional[str] = None
+):
+	"""
+	Preview a personalized notification without saving it to the database.
+	Useful for testing and previewing AI-generated notifications.
+	"""
+	import asyncio
+	from src.chatbot.personalized_notification_generator import generate_personalized_notification as generate_ai_notification
+	
+	# Run the AI notification generation in a thread pool
+	loop = asyncio.get_event_loop()
+	notification_data = await loop.run_in_executor(
+		None, 
+		generate_ai_notification, 
+		user_id, 
+		notification_type, 
+		custom_context
+	)
+	
+	return {
+		"user_id": user_id,
+		"preview": notification_data,
+		"note": "This is a preview. Use POST /notifications/{user_id}/personalized to save it."
+	}

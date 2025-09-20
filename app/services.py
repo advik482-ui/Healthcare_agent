@@ -444,3 +444,97 @@ async def delete_alert(alert_id: int, user_id: int) -> bool:
 async def get_active_alert_count(user_id: int) -> int:
 	async for conn in get_db_connection():
 		return await alerts_repo.get_active_alert_count(conn, user_id=user_id)
+
+
+# Personalized Notification Generation
+async def generate_personalized_notification(
+	user_id: int,
+	notification_type: str = "general",
+	custom_context: Optional[str] = None,
+) -> Dict[str, Any]:
+	"""
+	Generate a hyper-personalized notification for a user using AI.
+	Uses comprehensive user data to create engaging, personalized notifications.
+	"""
+	import asyncio
+	from src.chatbot.personalized_notification_generator import generate_personalized_notification as generate_ai_notification
+	
+	# Run the AI notification generation in a thread pool to avoid blocking
+	loop = asyncio.get_event_loop()
+	notification_data = await loop.run_in_executor(
+		None, 
+		generate_ai_notification, 
+		user_id, 
+		notification_type, 
+		custom_context
+	)
+	
+	# Create the notification in the database
+	result = await create_notification(
+		user_id=user_id,
+		title=notification_data["title"],
+		message=notification_data["message"],
+		notification_type=notification_data["notification_type"]
+	)
+	
+	return result
+
+
+async def generate_daily_personalized_notification(user_id: int) -> Dict[str, Any]:
+	"""
+	Generate a daily personalized notification based on user's current health status.
+	Automatically determines the best notification type based on user data.
+	"""
+	import asyncio
+	from src.chatbot.personalized_notification_generator import generate_daily_personalized_notification as generate_daily_ai_notification
+	
+	# Run the AI notification generation in a thread pool
+	loop = asyncio.get_event_loop()
+	notification_data = await loop.run_in_executor(
+		None, 
+		generate_daily_ai_notification, 
+		user_id
+	)
+	
+	# Create the notification in the database
+	result = await create_notification(
+		user_id=user_id,
+		title=notification_data["title"],
+		message=notification_data["message"],
+		notification_type=notification_data["notification_type"]
+	)
+	
+	return result
+
+
+async def generate_multiple_personalized_notifications(
+	user_id: int,
+	notification_types: Optional[List[str]] = None,
+) -> List[Dict[str, Any]]:
+	"""
+	Generate multiple personalized notifications for a user.
+	"""
+	import asyncio
+	from src.chatbot.personalized_notification_generator import generate_multiple_personalized_notifications as generate_multiple_ai_notifications
+	
+	# Run the AI notification generation in a thread pool
+	loop = asyncio.get_event_loop()
+	notifications_data = await loop.run_in_executor(
+		None, 
+		generate_multiple_ai_notifications, 
+		user_id, 
+		notification_types
+	)
+	
+	# Create all notifications in the database
+	results = []
+	for notification_data in notifications_data:
+		result = await create_notification(
+			user_id=user_id,
+			title=notification_data["title"],
+			message=notification_data["message"],
+			notification_type=notification_data["notification_type"]
+		)
+		results.append(result)
+	
+	return results
