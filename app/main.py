@@ -14,7 +14,31 @@ from services import add_user_tokens
 
 # ---------- CONFIG ----------
 CLIENT_SECRETS_FILE = "client.json"
-SCOPES = ["https://www.googleapis.com/auth/fitness.activity.read"]
+SCOPES = [
+    # Activity & Location
+    "https://www.googleapis.com/auth/fitness.activity.read",      # Steps, activity segments, calories burned
+    "https://www.googleapis.com/auth/fitness.location.read",      # Distance, location-based activities
+
+    # Heart / Cardiovascular
+    "https://www.googleapis.com/auth/fitness.heart_rate.read",    # Heart rate data
+    "https://www.googleapis.com/auth/fitness.blood_pressure.read", # Blood pressure
+    "https://www.googleapis.com/auth/fitness.oxygen_saturation.read", # Blood oxygen (SpO2)
+    
+    # Blood / Lab Data
+    "https://www.googleapis.com/auth/fitness.blood_glucose.read", # Blood glucose
+    "https://www.googleapis.com/auth/fitness.blood_pressure.read",# Blood pressure (again, if needed)
+    
+    # Realtime / Activity Tracking (optional)
+    "https://www.googleapis.com/auth/fitness.activity.write",    # If you also want to write activity data
+    "https://www.googleapis.com/auth/fitness.location.write",
+	
+    "https://www.googleapis.com/auth/fitness.activity.write",   # write activity data
+    "https://www.googleapis.com/auth/fitness.location.write",   # write distance/location data
+    "https://www.googleapis.com/auth/fitness.body.write",       # write weight, BMI, body fat, height
+    "https://www.googleapis.com/auth/fitness.nutrition.write",  # write food/water logs
+    "https://www.googleapis.com/auth/fitness.sleep.write"       # write sleep data
+]
+
 REDIRECT_URI = "https://grgwkl96-8000.inc1.devtunnels.ms/callback"
 
 app = FastAPI(title="Global Health API", version="0.1.0")

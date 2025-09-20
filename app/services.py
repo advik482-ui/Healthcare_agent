@@ -6,6 +6,7 @@ from repositories import daily_metrics as metrics_repo
 from repositories import medications as meds_repo
 from repositories import disorders as disorders_repo
 from repositories import reports as reports_repo
+from repositories import symptoms as symptoms_repo
 
 
 # Users
@@ -148,6 +149,50 @@ async def add_report(
 		return result
 
 
+# Symptoms
+async def add_symptom_log(
+	user_id: int,
+	symptom: str,
+	severity: Optional[str] = None,
+	duration: Optional[str] = None,
+	notes: Optional[str] = None,
+) -> Dict[str, Any]:
+	async for conn in get_db_connection():
+		result = await symptoms_repo.add_symptom_log(
+			conn, user_id=user_id, symptom=symptom, severity=severity, duration=duration, notes=notes
+		)
+		await conn.commit()
+		return result
+
+
+async def get_user_symptoms(user_id: int, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+	async for conn in get_db_connection():
+		return await symptoms_repo.get_user_symptoms(conn, user_id=user_id, limit=limit)
+
+
+async def get_recent_symptoms(user_id: int, days: int = 7) -> List[Dict[str, Any]]:
+	async for conn in get_db_connection():
+		return await symptoms_repo.get_recent_symptoms(conn, user_id=user_id, days=days)
+
+
+# User Profile Functions
+async def get_user_profile(user_id: int) -> Optional[Dict[str, Any]]:
+	async for conn in get_db_connection():
+		return await users_repo.get_user_profile(conn, user_id=user_id)
+
+
+async def get_all_users() -> List[Dict[str, Any]]:
+	async for conn in get_db_connection():
+		return await users_repo.get_all_users(conn)
+
+
+async def update_user_profile(user_id: int, **kwargs) -> Optional[Dict[str, Any]]:
+	async for conn in get_db_connection():
+		result = await users_repo.update_user_profile(conn, user_id=user_id, **kwargs)
+		await conn.commit()
+		return result
+
+
 # Search functions - get all user data for a specific date
 async def get_user_data_by_date(user_id: int, date: str) -> Dict[str, Any]:
 	"""
@@ -169,3 +214,117 @@ async def get_user_data_by_date(user_id: int, date: str) -> Dict[str, Any]:
 			"disorders": disorders,
 			"reports": reports,
 		}
+
+
+# COMPREHENSIVE USER DATA FETCHER
+async def get_comprehensive_user_data(user_id: int) -> str:
+	"""
+	ONE BIG FUNCTION: Fetches ALL user data from ALL tables and formats it as a comprehensive string.
+	This is designed to be appended to the master/system prompt for the AI.
+	"""
+	async for conn in get_db_connection():
+		# Get user profile
+		user_profile = await users_repo.get_user_profile(conn, user_id)
+		if not user_profile:
+			return f"User with ID {user_id} not found."
+		
+		# Get all related data
+		recent_symptoms = await symptoms_repo.get_recent_symptoms(conn, user_id, days=30)
+		user_disorders = await disorders_repo.get_user_disorders_by_date(conn, user_id, "2024-01-01")  # Get all disorders
+		user_medications = await meds_repo.get_user_medication_schedule_by_date(conn, user_id, "2024-01-01")  # Get all medications
+		recent_metrics = await metrics_repo.get_user_metrics_by_date(conn, user_id, "2024-01-01")  # Get all metrics
+		recent_reports = await reports_repo.get_user_reports_by_date(conn, user_id, "2024-01-01")  # Get all reports
+		
+		# Format comprehensive user data string
+		user_data = f"""
+=== COMPREHENSIVE USER HEALTH PROFILE ===
+User ID: {user_id}
+
+--- BASIC INFORMATION ---
+Name: {user_profile.get('name', 'N/A')}
+Age: {user_profile.get('age', 'N/A')}
+Gender: {user_profile.get('gender', 'N/A')}
+Email: {user_profile.get('email', 'N/A')}
+Created: {user_profile.get('created_at', 'N/A')}
+
+--- PHYSICAL METRICS ---
+Height: {user_profile.get('height_cm', 'N/A')} cm
+Weight: {user_profile.get('weight_kg', 'N/A')} kg
+BMI: {user_profile.get('bmi', 'N/A')}
+Blood Group: {user_profile.get('blood_group', 'N/A')}
+Activity Level: {user_profile.get('activity_level', 'N/A')}
+
+--- HEALTH INDICATORS ---
+Gym Member: {user_profile.get('gym_member', 'N/A')}
+Smoker: {user_profile.get('smoker', 'N/A')}
+Alcohol Consumer: {user_profile.get('alcohol', 'N/A')}
+On Medications: {user_profile.get('medications', 'N/A')}
+Ever Hospitalized: {user_profile.get('ever_hospitalized', 'N/A')}
+Ever Had Concussion: {user_profile.get('ever_concussion', 'N/A')}
+
+--- MEDICAL CONDITIONS & ALLERGIES ---
+Medical Conditions: {user_profile.get('medical_conditions', 'N/A')}
+Allergies: {user_profile.get('allergies', 'N/A')}
+
+--- AVERAGE HEALTH METRICS ---
+Average Sleep Hours: {user_profile.get('avg_sleep_hours', 'N/A')}
+Average Blood Pressure: {user_profile.get('avg_blood_pressure', 'N/A')}
+Average Heart Rate: {user_profile.get('avg_heart_rate', 'N/A')} BPM
+Average Water Intake: {user_profile.get('avg_water_intake', 'N/A')} liters
+Average Steps Per Day: {user_profile.get('steps_per_day', 'N/A')}
+
+--- LAB VALUES ---
+Cholesterol Level: {user_profile.get('cholesterol_level', 'N/A')} mg/dL
+Blood Sugar Level: {user_profile.get('blood_sugar_level', 'N/A')} mg/dL
+
+--- RECENT SYMPTOMS (Last 30 days) ---
+"""
+		
+		if recent_symptoms:
+			for symptom in recent_symptoms[:10]:  # Limit to 10 most recent
+				user_data += f"• {symptom.get('symptom', 'N/A')} (Severity: {symptom.get('severity', 'N/A')}, Duration: {symptom.get('duration', 'N/A')}) - {symptom.get('log_date', 'N/A')}\n"
+		else:
+			user_data += "No recent symptoms recorded.\n"
+		
+		user_data += f"""
+--- DIAGNOSED DISORDERS ---
+"""
+		if user_disorders:
+			for disorder in user_disorders:
+				user_data += f"• {disorder.get('disorder_name', 'N/A')} (Diagnosed: {disorder.get('diagnosed_date', 'N/A')}, Resolved: {disorder.get('resolved_date', 'Ongoing')})\n"
+		else:
+			user_data += "No diagnosed disorders recorded.\n"
+		
+		user_data += f"""
+--- CURRENT MEDICATIONS ---
+"""
+		if user_medications:
+			for med in user_medications[:5]:  # Limit to 5 most recent
+				user_data += f"• {med.get('medication_name', 'N/A')} ({med.get('dosage', 'N/A')}) - {med.get('frequency', 'N/A')}\n"
+		else:
+			user_data += "No current medications recorded.\n"
+		
+		user_data += f"""
+--- RECENT HEALTH REPORTS ---
+"""
+		if recent_reports:
+			for report in recent_reports[:3]:  # Limit to 3 most recent
+				user_data += f"• {report.get('report_type', 'N/A')} Report ({report.get('report_date', 'N/A')}): {report.get('content', 'N/A')[:100]}...\n"
+		else:
+			user_data += "No health reports available.\n"
+		
+		user_data += f"""
+--- EMERGENCY CONTACT ---
+{user_profile.get('emergency_contact', 'N/A')}
+
+--- RECENT SUMMARIES ---
+Yesterday's Summary: {user_profile.get('yesterday_summary', 'N/A')}
+Last Month's Summary: {user_profile.get('last_month_summary', 'N/A')}
+
+--- LAST CHECKUP ---
+{user_profile.get('last_checkup', 'N/A')}
+
+=== END OF USER HEALTH PROFILE ===
+"""
+		
+		return user_data
