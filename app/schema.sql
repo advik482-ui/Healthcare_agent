@@ -16,9 +16,9 @@ CREATE TABLE IF NOT EXISTS UserTokens (
     scopes TEXT,
     expires_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 
-    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+    --FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
 
 -- ===========================

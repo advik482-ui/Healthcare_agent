@@ -10,12 +10,12 @@ from google.oauth2.credentials import Credentials
 from pydantic import BaseModel
 from typing import List, Optional
 from db import ensure_database_initialized, get_db_connection
-
+from services import add_user_tokens
 
 # ---------- CONFIG ----------
 CLIENT_SECRETS_FILE = "client.json"
 SCOPES = ["https://www.googleapis.com/auth/fitness.activity.read"]
-
+REDIRECT_URI = "https://grgwkl96-8000.inc1.devtunnels.ms/callback"
 
 app = FastAPI(title="Global Health API", version="0.1.0")
 
@@ -54,7 +54,7 @@ async def authorize(request: Request):
     flow = Flow.from_client_secrets_file(
         CLIENT_SECRETS_FILE,
         scopes=SCOPES,
-        redirect_uri=str(request.url_for("callback"))
+        redirect_uri = "https://grgwkl96-8000.inc1.devtunnels.ms/callback"
     )
     authorization_url, state = flow.authorization_url(
         access_type="offline",
@@ -71,7 +71,7 @@ async def callback(request: Request):
     flow = Flow.from_client_secrets_file(
         CLIENT_SECRETS_FILE,
         scopes=SCOPES,
-        redirect_uri=str(request.url_for("callback"))
+        redirect_uri=REDIRECT_URI
     )
     flow.fetch_token(authorization_response=str(request.url))
 
@@ -87,11 +87,19 @@ async def callback(request: Request):
         "scopes": credentials.scopes
     }
 
-    return HTMLResponse(
-        f"Access Token: {credentials.token}<br>"
-        f"Refresh Token: {credentials.refresh_token}"
+    # Save tokens in DB for user_id = 1 (replace with actual logged-in user)
+    saved = await add_user_tokens(
+        user_id=1,  # TODO: dynamically get logged-in user_id
+        access_token=credentials.token,
+        refresh_token=credentials.refresh_token,
+        expiry=credentials.expiry.isoformat() if credentials.expiry else None
     )
 
+    return HTMLResponse(
+        f"Access Token: {credentials.token}<br>"
+        f"Refresh Token: {credentials.refresh_token}<br>"
+        f"Saved in DB: {saved}"
+    )
 
 @app.get("/revoke")
 async def revoke(request: Request):

@@ -1,11 +1,11 @@
 from typing import Dict, Any, Optional, List
 
-from .db import get_db_connection
-from .repositories import users as users_repo
-from .repositories import daily_metrics as metrics_repo
-from .repositories import medications as meds_repo
-from .repositories import disorders as disorders_repo
-from .repositories import reports as reports_repo
+from db import get_db_connection
+from repositories import users as users_repo
+from repositories import daily_metrics as metrics_repo
+from repositories import medications as meds_repo
+from repositories import disorders as disorders_repo
+from repositories import reports as reports_repo
 
 
 # Users

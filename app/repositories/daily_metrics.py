@@ -47,9 +47,9 @@ async def save_user_tokens(
     cursor = await conn.execute(
         """
         INSERT INTO UserTokens (
-            user_id, access_token, refresh_token, expiry
+            user_id, access_token, refresh_token, expires_at
         ) VALUES (?, ?, ?, ?)
-        RETURNING token_id, user_id, access_token, refresh_token, expiry, created_at
+        RETURNING token_id, user_id, access_token, refresh_token, expires_at, created_at
         """,
         (user_id, access_token, refresh_token, expiry),
     )
